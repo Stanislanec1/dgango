@@ -1,0 +1,13 @@
+<h1>Заказать анализ картинки</h1>
+
+<form method="post">
+    {% csrf_token %}
+    <label for="doc">Выберите документ:</label>
+    <select name="doc_id" id="doc">
+        {% for doc in documents %}
+            <option value="{{ doc.id }}">Документ {{ doc.id }} ({{ doc.file_path }})</option>
+        {% endfor %}
+    </select>
+    <br><br>
+    <button type="submit">Отправить заказ</button>
+</form>

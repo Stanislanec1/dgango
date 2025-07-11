@@ -1,0 +1,105 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  fastapi_service:
+    build:
+      context: ./fastapi_service
+      dockerfile: Dockerfile
+    command: >
+      sh -c "./wait-for-it.sh postgres:5432 -t 30 -- alembic upgrade head &&
+             uvicorn main:app --host 0.0.0.0 --port 8001 --reload"
+    ports:
+      - "8001:8001"
+    depends_on:
+      - postgres
+      - rabbitmq
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+    volumes:
+      - ./fastapi_service:/app
+    working_dir: /app
+
+  celery_worker:
+    build:
+      context: ./fastapi_service
+      dockerfile: Dockerfile
+    command: >
+      sh -c "./wait-for-it.sh postgres:5432 -t 30 -- celery -A celery_worker.celery_app worker --loglevel=info"
+    depends_on:
+      - postgres
+      - rabbitmq
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+    volumes:
+      - ./fastapi_service:/app
+    working_dir: /app
+
+  tesseract_platform:
+    build:
+      context: .
+      dockerfile: Dockerfile.django
+    command: >
+      sh -c "./wait-for-it.sh postgres:5432 -- python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - fastapi_service
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DEBUG: ${DEBUG}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      FASTAPI_HOST: fastapi_service
+      FASTAPI_PORT: 8001
+    volumes:
+      - ./tesseract_platform:/app
+    working_dir: /app
+
+
+
+
+volumes:
+  postgres_data:
+
+
+
+

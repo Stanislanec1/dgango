@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Главная страница</title>
+    <style>
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .item {
+            width: 30%;
+            margin: 10px;
+            text-align: center;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ccc;
+        }
+        .buttons {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Загруженные документы</h1>
+
+    <div class="buttons">
+        <a href="{% url 'upload' %}"><button>Добавить картинку</button></a>
+        <a href="{% url 'order' %}"><button>Заказать анализ</button></a>
+        <a href="{% url 'cart' %}"><button>Мои заказы</button></a>
+        <a href="{% url 'analyse_document' %}"><button>Проанализировать документ</button></a>
+        <a href="{% url 'get_text' %}">Получить текст документа</a>
+
+
+
+        <button disabled>Проанализировать</button>
+    </div>
+
+    <div class="container">
+        {% for doc in documents %}
+            <div class="item">
+                <p>ID: {{ doc.id }}</p>
+                <!--
+                  Чтобы ссылка корректно отображалась, добавляем слэш и убираем "media/" из пути.
+                  Например, если doc.file_path == "media/example.jpg",
+                  то мы отображаем "/media/example.jpg"
+                -->
+                <img src="/{{ doc.file_path }}" alt="Документ {{ doc.id }}">
+                <form action="{% url 'upload_to_fastapi' doc.id %}" method="post" enctype="multipart/form-data">
+                  {% csrf_token %}
+                  <button type="submit">Загрузить во FastAPI</button>
+                </form>
+                <a href="{% url 'delete_document' doc.id %}" onclick="return confirm('Удалить этот документ?');">Удалить</a>
+            </div>
+        {% empty %}
+            <p>Нет загруженных документов.</p>
+        {% endfor %}
+    </div>
+</body>
+</html>
+
+

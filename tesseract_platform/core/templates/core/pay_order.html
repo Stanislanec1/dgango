@@ -1,0 +1,12 @@
+<h1>Оплата заказа №{{ order.id }}</h1>
+
+<p>Документ ID: {{ order.document.id }}</p>
+<p>Цена: {{ order.order_price }}</p>
+<p>Статус оплаты: {{ order.payment|yesno:"Оплачен,Не оплачен" }}</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Подтвердить оплату</button>
+</form>
+
+<a href="{% url 'cart' %}">Вернуться к списку заказов</a>

@@ -1,0 +1,16 @@
+<h1>Анализ документа</h1>
+
+{% if error %}
+  <p style="color: red;">{{ error }}</p>
+{% endif %}
+
+{% if result %}
+  <p style="color: green;">{{ result }}</p>
+{% endif %}
+
+<form method="post">
+  {% csrf_token %}
+  <label for="doc_id">ID документа:</label>
+  <input type="text" id="doc_id" name="doc_id" required>
+  <button type="submit">Проанализировать</button>
+</form>

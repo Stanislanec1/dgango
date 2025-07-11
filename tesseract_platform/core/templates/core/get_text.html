@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Получить текст документа</title>
+</head>
+<body>
+    <h1>Получить текст</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        <label for="doc_id">ID документа:</label>
+        <input type="text" name="doc_id" id="doc_id" required>
+        <button type="submit">Получить</button>
+    </form>
+
+    {% if result %}
+        <h2>Результат:</h2>
+        <pre>{{ result }}</pre>
+    {% endif %}
+
+    {% if error %}
+        <p style="color:red;">{{ error }}</p>
+    {% endif %}
+
+    <a href="{% url 'index' %}">На главную</a>
+</body>
+</html>

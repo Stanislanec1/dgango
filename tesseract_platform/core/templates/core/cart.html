@@ -1,0 +1,22 @@
+<h1>Мои заказы</h1>
+
+{% if orders %}
+    <ul>
+    {% for order in orders %}
+        <li>
+            Документ ID: {{ order.document.id }} — Цена: {{ order.order_price }} —
+            Статус оплаты: {{ order.payment|yesno:"Оплачен,Не оплачен" }}
+            {% if not order.payment %}
+                <form action="{% url 'pay_order' order.id %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit">Оплатить</button>
+                </form>
+            {% endif %}
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>У вас нет заказов.</p>
+{% endif %}
+
+<a href="{% url 'index' %}">Вернуться на главную</a>
